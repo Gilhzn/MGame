@@ -140,6 +140,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
+          # NOTE: the runner executes each line as a separate `sh -c` — keep every command single-line.
           script: |
             adb install MGame-debug.apk
             adb logcat -c
@@ -147,10 +148,7 @@ jobs:
             sleep 30
             adb logcat -d > logcat.txt
             grep -iE "godot|overlord|FATAL|AndroidRuntime" logcat.txt | tail -40 || true
-            if ! adb shell pidof co.progis.overlord; then
-              echo "::error::App process died within 30s of launch"
-              exit 1
-            fi
+            adb shell pidof co.progis.overlord || { echo "::error::App process died within 30s of launch"; exit 1; }
             echo "App is alive after 30s."
 
       - name: Upload logcat
