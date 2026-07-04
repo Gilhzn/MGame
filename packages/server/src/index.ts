@@ -19,5 +19,6 @@ export * from './matchmaking/queue.js';
 export * from './bots/botController.js';
 export * from './fog/culler.js';
 export * from './replay/recorder.js';
+export * from './replay/replayRoom.js';
 export * from './ws/session.js';
 export * from './ws/gateway.js';

@@ -80,6 +80,7 @@ export class Room {
   private lastSentIds: [Set<number>, Set<number>] = [new Set(), new Set()];
   private lastProcessedInputSeq: [number, number] = [0, 0];
   private predictions: [PendingPrediction | null, PendingPrediction | null] = [null, null];
+  private sentHashes: [Map<number, string>, Map<number, string>] = [new Map(), new Map()];
   private possessedUnitByPlayer: [number, number] = [-1, -1];
   private loop: TickLoopHandle | null = null;
   private started = false;
@@ -144,6 +145,17 @@ export class Room {
       case 'RESYNC_REQUEST':
         this.sendFullSnapshot(pi);
         break;
+      case 'HASH_REPORT': {
+        // Desync monitor (PRD 7.4): the client's replicated-view hash must
+        // match what we sent for that tick; a mismatch triggers a hard
+        // re-sync with a full snapshot instead of letting drift accumulate.
+        const report = env.p as { tick: number; hash: string };
+        const expected = this.sentHashes[pi].get(report.tick);
+        if (expected !== undefined && expected !== report.hash) {
+          this.sendFullSnapshot(pi);
+        }
+        break;
+      }
       default:
         break;
     }
@@ -365,6 +377,12 @@ export class Room {
         includeHash: this.state.tick % HASH_EVERY_TICKS === 0,
       });
       this.lastSentIds[pi] = sentIds;
+      if (delta.stateHash !== undefined) {
+        this.sentHashes[pi].set(delta.tick, delta.stateHash);
+        for (const tick of this.sentHashes[pi].keys()) {
+          if (tick < delta.tick - 200) this.sentHashes[pi].delete(tick);
+        }
+      }
       this.links[pi].send('STATE_DELTA', delta, { tick: this.state.tick });
     }
   }
