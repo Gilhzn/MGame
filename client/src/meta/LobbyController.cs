@@ -33,17 +33,18 @@ public partial class LobbyController : Control
         _ = RefreshChests();
 
         var net = NetworkClient.Instance!;
-        net.MatchStarted += OnMatchStarted;
+        net.MatchFound += OnMatchFound;
         if (!net.IsLive) net.Connect();
     }
 
     public override void _ExitTree()
     {
-        if (NetworkClient.Instance is { } net) net.MatchStarted -= OnMatchStarted;
+        if (NetworkClient.Instance is { } net) net.MatchFound -= OnMatchFound;
     }
 
-    private void OnMatchStarted(MatchStartDto _)
+    private void OnMatchFound(string roomId)
     {
+        // Load the arena; ArenaController sends READY, and MATCH_START follows.
         SceneRouter.Instance?.Go(SceneRouter.Arena);
     }
 

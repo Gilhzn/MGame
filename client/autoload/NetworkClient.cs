@@ -16,6 +16,7 @@ public partial class NetworkClient : Node
 
     public event Action? Connected;
     public event Action? Disconnected;
+    public event Action<string>? MatchFound;
     public event Action<MatchStartDto>? MatchStarted;
     public event Action<StateDeltaDto>? StateDeltaReceived;
     public event Action<CorrectionDto>? CorrectionReceived;
@@ -118,6 +119,9 @@ public partial class NetworkClient : Node
                 _serverTimeOffsetMs = serverTime + rtt / 2 - NowMs();
                 break;
             }
+            case Opcodes.MatchFound:
+                MatchFound?.Invoke(env.P.GetProperty("roomId").GetString() ?? "");
+                break;
             case Opcodes.MatchStart:
                 if (Codec.Payload<MatchStartDto>(env) is { } start) MatchStarted?.Invoke(start);
                 break;

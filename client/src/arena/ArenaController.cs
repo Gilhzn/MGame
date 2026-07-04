@@ -47,13 +47,29 @@ public partial class ArenaController : Node3D
         game.PossessionEnded += OnPossessionEnded;
         game.MatchEnded += OnGameOver;
 
-        if (game.Match is { } match && LiveOpsConfigService.Instance?.Config is { } config)
-        {
-            var myDeck = match.Decks[match.PlayerIndex];
-            _hand.Setup(myDeck, config);
-        }
+        // The deck arrives with MATCH_START (which follows our READY).
+        NetworkClient.Instance!.MatchStarted += OnMatchStarted;
+        if (game.Match is { } match) SetupHand(match);
 
         NetworkClient.Instance?.SendReady();
+    }
+
+    public override void _ExitTree()
+    {
+        if (NetworkClient.Instance is { } net) net.MatchStarted -= OnMatchStarted;
+    }
+
+    private void OnMatchStarted(MatchStartDto match)
+    {
+        SetupHand(match);
+    }
+
+    private void SetupHand(MatchStartDto match)
+    {
+        if (LiveOpsConfigService.Instance?.Config is { } config)
+        {
+            _hand.Setup(match.Decks[match.PlayerIndex], config);
+        }
     }
 
     private void BuildBoard()
