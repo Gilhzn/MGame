@@ -79,6 +79,12 @@ jobs:
           dotnet build MGame.Client.csproj -c Debug
           "$GODOT_BIN" --headless --import . 2>&1 | tail -20 || true
 
+      - name: Install Android gradle build template (required for .NET exports)
+        working-directory: client
+        run: |
+          "$GODOT_BIN" --headless --path . --install-android-build-template --quit 2>&1 | tail -5 || true
+          test -f android/build/build.gradle && echo "gradle template installed"
+
       - name: Export debug APK
         working-directory: client
         env:
