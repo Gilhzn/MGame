@@ -1,0 +1,22 @@
+{
+ "fixtures": [
+  {
+   "raw": "{\"v\":1,\"t\":\"SPAWN_CARD\",\"seq\":3,\"p\":{\"cardId\":\"unit_royal_archer\",\"cell\":{\"x\":6,\"y\":4},\"possess\":true},\"tick\":120}",
+   "t": "SPAWN_CARD",
+   "seq": 3,
+   "tick": 120
+  },
+  {
+   "raw": "{\"v\":1,\"t\":\"INPUT\",\"seq\":12,\"p\":{\"unitId\":9,\"cTick\":40,\"seq\":11,\"moveX\":-707,\"moveY\":707,\"yawMdeg\":135000,\"pitchMdeg\":-4500,\"predictedX\":2450,\"predictedY\":10920},\"ack\":40}",
+   "t": "INPUT",
+   "seq": 12,
+   "ack": 40
+  },
+  {
+   "raw": "{\"v\":1,\"t\":\"CORRECTION\",\"seq\":90,\"p\":{\"unitId\":9,\"tick\":41,\"x\":2400,\"y\":10900,\"yawMdeg\":135000,\"lastInputSeq\":11},\"tick\":41}",
+   "t": "CORRECTION",
+   "seq": 90,
+   "tick": 41
+  }
+ ]
+}
