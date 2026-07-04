@@ -9,16 +9,38 @@ namespace Overlord.Client;
 public partial class BootController : Control
 {
     private Label _status = null!;
+    private LineEdit _serverField = null!;
 
     public override void _Ready()
     {
+        var box = new VBoxContainer();
+        box.SetAnchorsPreset(LayoutPreset.Center);
+        box.CustomMinimumSize = new Vector2(480, 0);
+        AddChild(box);
+
         _status = new Label
         {
             Text = "Connecting...",
             HorizontalAlignment = HorizontalAlignment.Center,
         };
-        _status.SetAnchorsPreset(LayoutPreset.Center);
-        AddChild(_status);
+        box.AddChild(_status);
+
+        // Device-testing escape hatch: point the client at any server.
+        _serverField = new LineEdit
+        {
+            Text = AuthService.ServerHttpUrl,
+            PlaceholderText = "http://<server-ip>:8080",
+        };
+        box.AddChild(_serverField);
+        var apply = new Button { Text = "Set server & reconnect" };
+        apply.Pressed += () =>
+        {
+            AuthService.SetServerUrl(_serverField.Text);
+            _status.Text = "Reconnecting...";
+            _ = Boot();
+        };
+        box.AddChild(apply);
+
         _ = Boot();
     }
 

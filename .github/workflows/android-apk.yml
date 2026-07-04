@@ -1,0 +1,104 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/hybrid-rts-fps-prd-jpnymh]
+    paths:
+      - 'client/**'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.3-stable
+
+jobs:
+  apk:
+    name: Build debug APK (arm64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Godot (.NET edition) + export templates
+        run: |
+          set -euo pipefail
+          curl -fsSL -o godot.zip \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_mono_linux_x86_64.zip"
+          unzip -q godot.zip -d "$HOME/godot"
+          GODOT_BIN="$(find "$HOME/godot" -name 'Godot_v*_mono_linux.x86_64' -type f)"
+          chmod +x "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
+
+          curl -fsSL -o templates.tpz \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_mono_export_templates.tpz"
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION/-/.}.mono"
+          mkdir -p "$TEMPLATE_DIR"
+          unzip -q templates.tpz -d /tmp/templates
+          mv /tmp/templates/templates/* "$TEMPLATE_DIR/"
+
+      - name: Generate debug keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore "$HOME/debug.keystore" \
+            -alias androiddebugkey -storepass android -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Configure Godot editor settings (Android SDK + JDK)
+        run: |
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$HOME/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+
+      - name: Import project (headless)
+        working-directory: client
+        run: |
+          dotnet restore MGame.Client.csproj
+          "$GODOT_BIN" --headless --import . 2>&1 | tail -20 || true
+
+      - name: Export debug APK
+        working-directory: client
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          mkdir -p build
+          "$GODOT_BIN" --headless --export-debug "Android" build/MGame-debug.apk
+          ls -la build/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MGame-debug-apk
+          path: client/build/MGame-debug.apk
+          if-no-files-found: error
+
+      - name: Publish as prerelease (stable download link)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create android-apk-test \
+            --title "Android test APK" \
+            --notes "Debug build from ${GITHUB_SHA}" \
+            --prerelease --target "${GITHUB_REF_NAME}" 2>/dev/null || true
+          gh release upload android-apk-test client/build/MGame-debug.apk --clobber

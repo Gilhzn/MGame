@@ -23,14 +23,36 @@ public partial class AuthService : Node
     public string? ProfileId { get; private set; }
     public string? Username { get; private set; }
 
+    private const string ServerUrlPath = "user://server_url.txt";
+    private static string? _serverUrlOverride;
+
+    /// <summary>Priority: user-saved override (Boot screen) → env var → localhost default.</summary>
     public static string ServerHttpUrl =>
-        OS.GetEnvironment("OVERLORD_SERVER") is { Length: > 0 } url ? url : "http://127.0.0.1:8080";
+        _serverUrlOverride
+        ?? (OS.GetEnvironment("OVERLORD_SERVER") is { Length: > 0 } url ? url : "http://127.0.0.1:8080");
+
+    /// <summary>Persist a server address entered on the Boot screen (device testing).</summary>
+    public static void SetServerUrl(string url)
+    {
+        _serverUrlOverride = url.TrimEnd('/');
+        using var f = FileAccess.Open(ServerUrlPath, FileAccess.ModeFlags.Write);
+        f?.StoreString(_serverUrlOverride);
+    }
+
+    private static void LoadServerUrlOverride()
+    {
+        if (!FileAccess.FileExists(ServerUrlPath)) return;
+        using var f = FileAccess.Open(ServerUrlPath, FileAccess.ModeFlags.Read);
+        var saved = f?.GetAsText().Trim();
+        if (!string.IsNullOrEmpty(saved)) _serverUrlOverride = saved;
+    }
 
     private readonly System.Net.Http.HttpClient _http = new();
 
     public override void _EnterTree()
     {
         Instance = this;
+        LoadServerUrlOverride();
     }
 
     public async Task<bool> EnsureAuthenticated()
