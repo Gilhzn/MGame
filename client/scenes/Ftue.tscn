@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://overlord_ftue"]
+
+[ext_resource type="Script" path="res://src/arena/ArenaController.cs" id="1_arena"]
+[ext_resource type="Script" path="res://src/arena/FtueDirector.cs" id="2_ftue"]
+
+[node name="FtueArena" type="Node3D"]
+script = ExtResource("1_arena")
+
+[node name="FtueDirector" type="CanvasLayer" parent="."]
+script = ExtResource("2_ftue")

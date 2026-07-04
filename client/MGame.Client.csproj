@@ -1,0 +1,17 @@
+<Project Sdk="Godot.NET.Sdk/4.3.0">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Overlord.Client</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- CoreLogic compiles as its own testable assembly; exclude from the Godot glob. -->
+    <Compile Remove="CoreLogic/**/*.cs;CoreLogic.Tests/**/*.cs" />
+    <None Remove="CoreLogic/**;CoreLogic.Tests/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="CoreLogic/CoreLogic.csproj" />
+  </ItemGroup>
+</Project>
