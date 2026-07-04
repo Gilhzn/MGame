@@ -48,6 +48,7 @@ jobs:
           mkdir -p "$TEMPLATE_DIR"
           unzip -q templates.tpz -d /tmp/templates
           mv /tmp/templates/templates/* "$TEMPLATE_DIR/"
+          echo "TEMPLATE_DIR=$TEMPLATE_DIR" >> "$GITHUB_ENV"
 
       - name: Generate debug keystore
         run: |
@@ -82,7 +83,12 @@ jobs:
       - name: Install Android gradle build template (required for .NET exports)
         working-directory: client
         run: |
-          "$GODOT_BIN" --headless --path . --install-android-build-template --quit 2>&1 | tail -5 || true
+          # Mirrors the editor's "Install Android Build Template" action:
+          # unzip android_source.zip into res://android/build + version stamp.
+          mkdir -p android/build
+          unzip -q -o "$TEMPLATE_DIR/android_source.zip" -d android/build
+          touch android/build/.gdignore
+          echo "${GODOT_VERSION/-/.}.mono" > android/.build_version
           test -f android/build/build.gradle && echo "gradle template installed"
 
       - name: Export debug APK
