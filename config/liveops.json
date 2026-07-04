@@ -1,0 +1,295 @@
+{
+  "liveops_version": "2026.07.04.01",
+  "meta_progression_curves": {
+    "card_upgrade_gold_costs": [0, 5, 20, 50, 150, 400, 1000, 2000, 5000, 8000, 15000, 35000, 75000, 100000],
+    "cards_required_for_upgrade": [0, 2, 4, 10, 20, 50, 100, 200, 400, 800, 1000, 2000, 3000, 5000]
+  },
+  "lootbox_drop_matrices": {
+    "silver_chest": { "unlock_duration_seconds": 10800, "common_chance": 85.0, "rare_chance": 14.0, "epic_chance": 1.0, "legendary_chance": 0.0, "card_count": 6, "gold_min": 20, "gold_max": 40 },
+    "gold_chest":   { "unlock_duration_seconds": 28800, "common_chance": 60.0, "rare_chance": 32.0, "epic_chance": 7.5, "legendary_chance": 0.5, "card_count": 12, "gold_min": 60, "gold_max": 120 },
+    "mega_chest":   { "unlock_duration_seconds": 86400, "common_chance": 30.0, "rare_chance": 45.0, "epic_chance": 20.0, "legendary_chance": 5.0, "card_count": 40, "gold_min": 200, "gold_max": 400 }
+  },
+  "arena_config": {
+    "match_duration_seconds": 180,
+    "double_elixir_final_seconds": 60,
+    "starting_elixir": 5,
+    "towers": {
+      "king":  { "hitpoints": 2400, "damage": 50, "attack_cooldown": 1.0, "range": 7.0 },
+      "guard": { "hitpoints": 1400, "damage": 35, "attack_cooldown": 0.8, "range": 7.5 }
+    }
+  },
+  "unit_registry": [
+    {
+      "uid": "unit_royal_archer",
+      "display_name": "Royal Archer",
+      "rarity": "common",
+      "rig": "Agile_Humanoid_Rig",
+      "elixir_cost": 3,
+      "ai_stats": {
+        "move_speed": 3.2,
+        "search_radius": 8.0,
+        "attack_cooldown": 1.1,
+        "damage": 42,
+        "hitpoints": 320
+      },
+      "hitbox": { "radius": 0.4, "height": 1.7, "head_radius": 0.18 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 1.0,
+        "weapon_alpha": {
+          "type": "HITSCAN",
+          "damage": 28,
+          "fire_rate_seconds": 0.35,
+          "clip_capacity": 20,
+          "reload_seconds": 1.2,
+          "headshot_multiplier": 1.5
+        },
+        "weapon_beta": {
+          "type": "PROJECTILE",
+          "damage": 135,
+          "fire_rate_seconds": 2.5,
+          "clip_capacity": 1,
+          "reload_seconds": 2.2,
+          "headshot_multiplier": 3.0
+        }
+      }
+    },
+    {
+      "uid": "unit_iron_knight",
+      "display_name": "Iron Knight",
+      "rarity": "common",
+      "rig": "Heavy_Humanoid_Rig",
+      "elixir_cost": 4,
+      "ai_stats": {
+        "move_speed": 2.2,
+        "search_radius": 6.0,
+        "attack_cooldown": 1.3,
+        "damage": 78,
+        "hitpoints": 780
+      },
+      "hitbox": { "radius": 0.5, "height": 1.9, "head_radius": 0.2 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 0.85,
+        "weapon_alpha": {
+          "type": "HITSCAN",
+          "damage": 40,
+          "fire_rate_seconds": 0.55,
+          "clip_capacity": 12,
+          "reload_seconds": 1.6,
+          "headshot_multiplier": 1.4
+        },
+        "weapon_beta": {
+          "type": "PROJECTILE",
+          "damage": 190,
+          "fire_rate_seconds": 3.0,
+          "clip_capacity": 1,
+          "reload_seconds": 2.8,
+          "headshot_multiplier": 2.5
+        }
+      }
+    },
+    {
+      "uid": "unit_shadow_rogue",
+      "display_name": "Shadow Rogue",
+      "rarity": "rare",
+      "rig": "Agile_Humanoid_Rig",
+      "elixir_cost": 2,
+      "ai_stats": {
+        "move_speed": 4.2,
+        "search_radius": 7.0,
+        "attack_cooldown": 0.8,
+        "damage": 30,
+        "hitpoints": 210
+      },
+      "hitbox": { "radius": 0.35, "height": 1.6, "head_radius": 0.16 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 1.2,
+        "weapon_alpha": {
+          "type": "HITSCAN",
+          "damage": 20,
+          "fire_rate_seconds": 0.22,
+          "clip_capacity": 24,
+          "reload_seconds": 1.0,
+          "headshot_multiplier": 1.6
+        },
+        "weapon_beta": {
+          "type": "PROJECTILE",
+          "damage": 110,
+          "fire_rate_seconds": 2.0,
+          "clip_capacity": 1,
+          "reload_seconds": 1.8,
+          "headshot_multiplier": 3.5
+        }
+      }
+    },
+    {
+      "uid": "unit_stone_golem",
+      "display_name": "Stone Golem",
+      "rarity": "epic",
+      "rig": "Monstrous_Beast_Rig",
+      "elixir_cost": 6,
+      "ai_stats": {
+        "move_speed": 1.6,
+        "search_radius": 5.0,
+        "attack_cooldown": 1.8,
+        "damage": 120,
+        "hitpoints": 1600
+      },
+      "hitbox": { "radius": 0.8, "height": 2.6, "head_radius": 0.3 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 0.7,
+        "weapon_alpha": {
+          "type": "HITSCAN",
+          "damage": 55,
+          "fire_rate_seconds": 0.7,
+          "clip_capacity": 8,
+          "reload_seconds": 2.0,
+          "headshot_multiplier": 1.3
+        },
+        "weapon_beta": {
+          "type": "PROJECTILE",
+          "damage": 260,
+          "fire_rate_seconds": 3.5,
+          "clip_capacity": 1,
+          "reload_seconds": 3.2,
+          "headshot_multiplier": 2.0
+        }
+      }
+    },
+    {
+      "uid": "unit_flame_mage",
+      "display_name": "Flame Mage",
+      "rarity": "rare",
+      "rig": "Agile_Humanoid_Rig",
+      "elixir_cost": 5,
+      "ai_stats": {
+        "move_speed": 2.6,
+        "search_radius": 9.0,
+        "attack_cooldown": 1.5,
+        "damage": 90,
+        "hitpoints": 380
+      },
+      "hitbox": { "radius": 0.4, "height": 1.7, "head_radius": 0.18 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 1.0,
+        "weapon_alpha": {
+          "type": "PROJECTILE",
+          "damage": 45,
+          "fire_rate_seconds": 0.6,
+          "clip_capacity": 10,
+          "reload_seconds": 1.5,
+          "headshot_multiplier": 1.5
+        },
+        "weapon_beta": {
+          "type": "PROJECTILE",
+          "damage": 170,
+          "fire_rate_seconds": 2.8,
+          "clip_capacity": 1,
+          "reload_seconds": 2.5,
+          "headshot_multiplier": 2.8
+        }
+      }
+    },
+    {
+      "uid": "unit_frost_gunner",
+      "display_name": "Frost Gunner",
+      "rarity": "common",
+      "rig": "Heavy_Humanoid_Rig",
+      "elixir_cost": 4,
+      "ai_stats": {
+        "move_speed": 2.8,
+        "search_radius": 8.5,
+        "attack_cooldown": 1.0,
+        "damage": 52,
+        "hitpoints": 460
+      },
+      "hitbox": { "radius": 0.45, "height": 1.8, "head_radius": 0.19 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 0.95,
+        "weapon_alpha": {
+          "type": "HITSCAN",
+          "damage": 32,
+          "fire_rate_seconds": 0.4,
+          "clip_capacity": 16,
+          "reload_seconds": 1.4,
+          "headshot_multiplier": 1.5
+        },
+        "weapon_beta": {
+          "type": "HITSCAN",
+          "damage": 150,
+          "fire_rate_seconds": 2.6,
+          "clip_capacity": 1,
+          "reload_seconds": 2.4,
+          "headshot_multiplier": 3.0
+        }
+      }
+    },
+    {
+      "uid": "unit_bomb_lobber",
+      "display_name": "Bomb Lobber",
+      "rarity": "rare",
+      "rig": "Heavy_Humanoid_Rig",
+      "elixir_cost": 4,
+      "ai_stats": {
+        "move_speed": 2.4,
+        "search_radius": 10.0,
+        "attack_cooldown": 2.0,
+        "damage": 105,
+        "hitpoints": 420
+      },
+      "hitbox": { "radius": 0.5, "height": 1.8, "head_radius": 0.2 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 0.9,
+        "weapon_alpha": {
+          "type": "PROJECTILE",
+          "damage": 60,
+          "fire_rate_seconds": 0.9,
+          "clip_capacity": 6,
+          "reload_seconds": 1.8,
+          "headshot_multiplier": 1.4
+        },
+        "weapon_beta": {
+          "type": "PROJECTILE",
+          "damage": 220,
+          "fire_rate_seconds": 3.2,
+          "clip_capacity": 1,
+          "reload_seconds": 3.0,
+          "headshot_multiplier": 2.2
+        }
+      }
+    },
+    {
+      "uid": "unit_swift_scout",
+      "display_name": "Swift Scout",
+      "rarity": "legendary",
+      "rig": "Agile_Humanoid_Rig",
+      "elixir_cost": 2,
+      "ai_stats": {
+        "move_speed": 4.8,
+        "search_radius": 11.0,
+        "attack_cooldown": 0.7,
+        "damage": 24,
+        "hitpoints": 180
+      },
+      "hitbox": { "radius": 0.32, "height": 1.55, "head_radius": 0.15 },
+      "possession_fps_stats": {
+        "mouse_sensitivity_scale": 1.3,
+        "weapon_alpha": {
+          "type": "HITSCAN",
+          "damage": 16,
+          "fire_rate_seconds": 0.18,
+          "clip_capacity": 30,
+          "reload_seconds": 0.9,
+          "headshot_multiplier": 1.7
+        },
+        "weapon_beta": {
+          "type": "HITSCAN",
+          "damage": 125,
+          "fire_rate_seconds": 2.2,
+          "clip_capacity": 1,
+          "reload_seconds": 2.0,
+          "headshot_multiplier": 4.0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LiveOpsConfig",
+  "type": "object",
+  "required": ["liveops_version", "meta_progression_curves", "lootbox_drop_matrices", "arena_config", "unit_registry"],
+  "properties": {
+    "liveops_version": { "type": "string" },
+    "meta_progression_curves": {
+      "type": "object",
+      "required": ["card_upgrade_gold_costs", "cards_required_for_upgrade"],
+      "properties": {
+        "card_upgrade_gold_costs": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "cards_required_for_upgrade": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      }
+    },
+    "lootbox_drop_matrices": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["unlock_duration_seconds", "common_chance", "rare_chance", "epic_chance", "legendary_chance"],
+        "properties": {
+          "unlock_duration_seconds": { "type": "integer", "minimum": 0 },
+          "common_chance": { "type": "number" },
+          "rare_chance": { "type": "number" },
+          "epic_chance": { "type": "number" },
+          "legendary_chance": { "type": "number" },
+          "card_count": { "type": "integer", "minimum": 1 },
+          "gold_min": { "type": "integer", "minimum": 0 },
+          "gold_max": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "arena_config": {
+      "type": "object",
+      "required": ["match_duration_seconds", "double_elixir_final_seconds", "starting_elixir", "towers"],
+      "properties": {
+        "match_duration_seconds": { "type": "integer", "minimum": 30 },
+        "double_elixir_final_seconds": { "type": "integer", "minimum": 0 },
+        "starting_elixir": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "towers": {
+          "type": "object",
+          "required": ["king", "guard"],
+          "additionalProperties": {
+            "type": "object",
+            "required": ["hitpoints", "damage", "attack_cooldown", "range"],
+            "properties": {
+              "hitpoints": { "type": "integer", "minimum": 1 },
+              "damage": { "type": "integer", "minimum": 0 },
+              "attack_cooldown": { "type": "number", "exclusiveMinimum": 0 },
+              "range": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "unit_registry": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["uid", "rarity", "rig", "elixir_cost", "ai_stats", "hitbox", "possession_fps_stats"],
+        "properties": {
+          "uid": { "type": "string" },
+          "display_name": { "type": "string" },
+          "rarity": { "enum": ["common", "rare", "epic", "legendary"] },
+          "rig": { "enum": ["Heavy_Humanoid_Rig", "Agile_Humanoid_Rig", "Monstrous_Beast_Rig"] },
+          "elixir_cost": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "ai_stats": {
+            "type": "object",
+            "required": ["move_speed", "search_radius", "attack_cooldown", "damage", "hitpoints"],
+            "properties": {
+              "move_speed": { "type": "number", "exclusiveMinimum": 0 },
+              "search_radius": { "type": "number", "exclusiveMinimum": 0 },
+              "attack_cooldown": { "type": "number", "exclusiveMinimum": 0 },
+              "damage": { "type": "integer", "minimum": 0 },
+              "hitpoints": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "hitbox": {
+            "type": "object",
+            "required": ["radius", "height", "head_radius"],
+            "properties": {
+              "radius": { "type": "number", "exclusiveMinimum": 0 },
+              "height": { "type": "number", "exclusiveMinimum": 0 },
+              "head_radius": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          },
+          "possession_fps_stats": {
+            "type": "object",
+            "required": ["mouse_sensitivity_scale", "weapon_alpha", "weapon_beta"],
+            "properties": {
+              "mouse_sensitivity_scale": { "type": "number", "exclusiveMinimum": 0 },
+              "weapon_alpha": { "$ref": "#/definitions/weapon" },
+              "weapon_beta": { "$ref": "#/definitions/weapon" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "weapon": {
+      "type": "object",
+      "required": ["type", "damage", "fire_rate_seconds", "clip_capacity", "reload_seconds", "headshot_multiplier"],
+      "properties": {
+        "type": { "enum": ["HITSCAN", "PROJECTILE"] },
+        "damage": { "type": "integer", "minimum": 0 },
+        "fire_rate_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "clip_capacity": { "type": "integer", "minimum": 1 },
+        "reload_seconds": { "type": "number", "minimum": 0 },
+        "headshot_multiplier": { "type": "number", "minimum": 1 }
+      }
+    }
+  }
+}

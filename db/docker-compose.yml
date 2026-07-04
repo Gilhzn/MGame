@@ -1,0 +1,18 @@
+version: "3.8"
+
+# Local PostgreSQL for pg-integration tests. Apply migrations in order:
+#   for f in db/migrations/*.sql; do psql "$DATABASE_URL" -f "$f"; done
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: overlord
+      POSTGRES_PASSWORD: overlord
+      POSTGRES_DB: overlord
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
