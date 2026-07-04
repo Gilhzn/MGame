@@ -27,5 +27,5 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet build client/MGame.sln
+      - run: dotnet build client/MGame.Client.sln
       - run: dotnet test client/CoreLogic.Tests/CoreLogic.Tests.csproj --no-restore

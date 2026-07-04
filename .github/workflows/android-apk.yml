@@ -99,7 +99,14 @@ jobs:
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
-          "$GODOT_BIN" --headless --export-debug "Android" build/MGame-debug.apk
+          "$GODOT_BIN" --headless --export-debug "Android" build/MGame-debug.apk 2>&1 | tee export.log
+          # The exporter reports .NET packaging failures only as warnings —
+          # a missing solution ships an APK without C# assemblies (instant
+          # crash on launch). Treat them as hard errors.
+          if grep -qiE "no solution file|Failed to build project|dotnet publish.*failed" export.log; then
+            echo "::error::.NET assemblies were not packaged into the APK"
+            exit 1
+          fi
           ls -la build/
 
       - name: Upload artifact
@@ -109,12 +116,67 @@ jobs:
           path: client/build/MGame-debug.apk
           if-no-files-found: error
 
+  smoke:
+    name: Boot APK on Android emulator
+    runs-on: ubuntu-latest
+    needs: apk
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: MGame-debug-apk
+
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch app and verify it survives boot
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install MGame-debug.apk
+            adb logcat -c
+            adb shell am start -n co.progis.overlord/com.godot.game.GodotApp
+            sleep 30
+            adb logcat -d > logcat.txt
+            grep -iE "godot|overlord|FATAL|AndroidRuntime" logcat.txt | tail -40 || true
+            if ! adb shell pidof co.progis.overlord; then
+              echo "::error::App process died within 30s of launch"
+              exit 1
+            fi
+            echo "App is alive after 30s."
+
+      - name: Upload logcat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logcat
+          path: logcat.txt
+          if-no-files-found: ignore
+
+  publish:
+    name: Publish verified APK
+    runs-on: ubuntu-latest
+    needs: smoke
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: MGame-debug-apk
       - name: Publish as prerelease (stable download link)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create android-apk-test \
             --title "Android test APK" \
-            --notes "Debug build from ${GITHUB_SHA}" \
+            --notes "Debug build from ${GITHUB_SHA} (emulator boot verified)" \
             --prerelease --target "${GITHUB_REF_NAME}" 2>/dev/null || true
-          gh release upload android-apk-test client/build/MGame-debug.apk --clobber
+          gh release upload android-apk-test MGame-debug.apk --clobber

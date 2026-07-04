@@ -29,6 +29,7 @@ npm test             # vitest: sim + protocol + server suites
 npm run dev:server   # start the game server (see packages/server/.env.example)
 
 # Godot client core logic (no Godot editor needed):
+dotnet build client/MGame.Client.sln
 dotnet test client/CoreLogic.Tests
 ```
 
