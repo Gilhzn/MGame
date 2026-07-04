@@ -12,7 +12,9 @@ permissions:
   contents: write
 
 env:
-  GODOT_VERSION: 4.3-stable
+  # 4.4+ required: 4.3 treats the "C#/.NET Android export is experimental"
+  # warning as a fatal error in headless CLI exports.
+  GODOT_VERSION: 4.4.1-stable
 
 jobs:
   apk:
@@ -58,7 +60,7 @@ jobs:
       - name: Configure Godot editor settings (Android SDK + JDK)
         run: |
           mkdir -p "$HOME/.config/godot"
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          cat > "$HOME/.config/godot/editor_settings-4.4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
@@ -69,10 +71,12 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
-      - name: Import project (headless)
+      - name: Build C# assemblies + import project (headless)
         working-directory: client
         run: |
-          dotnet restore MGame.Client.csproj
+          # Godot loads the game assembly from .godot/mono/temp/bin/Debug —
+          # Godot.NET.Sdk redirects the build output there.
+          dotnet build MGame.Client.csproj -c Debug
           "$GODOT_BIN" --headless --import . 2>&1 | tail -20 || true
 
       - name: Export debug APK

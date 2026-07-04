@@ -5,7 +5,7 @@ config_version=5
 
 config/name="Project Overlord"
 run/main_scene="res://scenes/Boot.tscn"
-config/features=PackedStringArray("4.3", "C#", "Mobile")
+config/features=PackedStringArray("4.4", "C#", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
