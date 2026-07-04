@@ -1,0 +1,31 @@
+export const C2S = {
+  HELLO: 'HELLO',
+  QUEUE_JOIN: 'QUEUE_JOIN',
+  QUEUE_LEAVE: 'QUEUE_LEAVE',
+  READY: 'READY',
+  SPAWN_CARD: 'SPAWN_CARD',
+  INPUT: 'INPUT',
+  SHOOT: 'SHOOT',
+  HASH_REPORT: 'HASH_REPORT',
+  RESYNC_REQUEST: 'RESYNC_REQUEST',
+  PING: 'PING',
+} as const;
+
+export const S2C = {
+  WELCOME: 'WELCOME',
+  QUEUED: 'QUEUED',
+  MATCH_FOUND: 'MATCH_FOUND',
+  MATCH_START: 'MATCH_START',
+  STATE_DELTA: 'STATE_DELTA',
+  CORRECTION: 'CORRECTION',
+  FULL_SNAPSHOT: 'FULL_SNAPSHOT',
+  POSSESS_CONFIRM: 'POSSESS_CONFIRM',
+  POSSESS_END: 'POSSESS_END',
+  GAME_OVER: 'GAME_OVER',
+  PONG: 'PONG',
+  ERROR: 'ERROR',
+} as const;
+
+export type C2SOpcode = (typeof C2S)[keyof typeof C2S];
+export type S2COpcode = (typeof S2C)[keyof typeof S2C];
+export type Opcode = C2SOpcode | S2COpcode;
