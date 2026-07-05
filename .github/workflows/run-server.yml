@@ -14,6 +14,8 @@ on:
         default: '300'
   schedule:
     - cron: '15 */5 * * *'
+  push:
+    paths: ['server-trigger.txt']
 
 concurrency:
   group: game-server
