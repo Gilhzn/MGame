@@ -1,0 +1,102 @@
+name: Run Server (public tunnel)
+
+# Hosts the game server inside a GitHub Actions job, exposed through a free
+# Cloudflare quick tunnel (no account needed). The public URL is committed to
+# server_url.txt, which the mobile client fetches at boot to auto-connect.
+# Each run lives up to ~5.5h; the cron keeps a server up around the clock
+# (a fresh run replaces the URL — clients pick it up on next app start).
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration_minutes:
+        description: How long to keep the server alive
+        default: '300'
+  schedule:
+    - cron: '15 */5 * * *'
+
+concurrency:
+  group: game-server
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  serve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Start game server
+        run: |
+          PORT=8080 nohup npx tsx packages/server/src/main.ts > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf localhost:8080/config > /dev/null && break
+            sleep 1
+          done
+          curl -sf localhost:8080/config | head -c 120
+          echo
+
+      - name: Open Cloudflare quick tunnel
+        run: |
+          curl -fsSL -o cloudflared \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x cloudflared
+          nohup ./cloudflared tunnel --url http://localhost:8080 --no-autoupdate > tunnel.log 2>&1 &
+          for i in $(seq 1 60); do
+            URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' tunnel.log | head -1 || true)
+            [ -n "$URL" ] && break
+            sleep 1
+          done
+          [ -n "$URL" ] || { cat tunnel.log; echo "::error::no tunnel URL"; exit 1; }
+          echo "TUNNEL_URL=$URL" >> "$GITHUB_ENV"
+          echo "Tunnel: $URL"
+
+      - name: Verify the server answers through the tunnel
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf "$TUNNEL_URL/config" | grep -q liveops_version; then
+              echo "Tunnel verified: $TUNNEL_URL"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::tunnel did not become reachable"
+          exit 1
+
+      - name: Publish server URL for client auto-discovery
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "$TUNNEL_URL" > server_url.txt
+          git add server_url.txt
+          git commit -m "chore(server): publish tunnel URL $TUNNEL_URL [skip ci]" || exit 0
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase && sleep 2
+          done
+          echo "### Game server is LIVE" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**$TUNNEL_URL**" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The mobile client auto-discovers this URL at boot." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep alive
+        run: |
+          MINUTES="${{ github.event.inputs.duration_minutes || '300' }}"
+          echo "Serving for $MINUTES minutes..."
+          END=$(( $(date +%s) + MINUTES * 60 ))
+          while [ "$(date +%s)" -lt "$END" ]; do
+            curl -sf localhost:8080/config > /dev/null || { echo "::error::server died"; tail -50 server.log; exit 1; }
+            sleep 60
+          done
+          echo "Session complete."

@@ -47,6 +47,14 @@ public partial class BootController : Control
     private async System.Threading.Tasks.Task Boot()
     {
         var auth = AuthService.Instance!;
+
+        // Zero-config path: pick up the public server published by the
+        // Run Server workflow, unless the user typed an address manually.
+        _status.Text = "Locating server...";
+        await auth.DiscoverServer();
+        _serverField.Text = AuthService.ServerHttpUrl;
+
+        _status.Text = "Connecting...";
         if (!await auth.EnsureAuthenticated())
         {
             _status.Text = "Cannot reach server. Retrying in 3s...";

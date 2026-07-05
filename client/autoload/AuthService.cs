@@ -25,11 +25,39 @@ public partial class AuthService : Node
 
     private const string ServerUrlPath = "user://server_url.txt";
     private static string? _serverUrlOverride;
+    private static string? _discoveredUrl;
 
-    /// <summary>Priority: user-saved override (Boot screen) → env var → localhost default.</summary>
+    /// <summary>
+    /// The Run Server workflow commits the live tunnel URL here; the client
+    /// fetches it at boot and connects with zero configuration.
+    /// </summary>
+    private const string DiscoveryUrl =
+        "https://raw.githubusercontent.com/Gilhzn/MGame/claude/hybrid-rts-fps-prd-jpnymh/server_url.txt";
+
+    /// <summary>Priority: user-saved override → auto-discovered public server → env var → localhost.</summary>
     public static string ServerHttpUrl =>
         _serverUrlOverride
+        ?? _discoveredUrl
         ?? (OS.GetEnvironment("OVERLORD_SERVER") is { Length: > 0 } url ? url : "http://127.0.0.1:8080");
+
+    /// <summary>Fetch the current public server URL. No-op when the user set one manually.</summary>
+    public async Task DiscoverServer()
+    {
+        if (_serverUrlOverride is not null) return;
+        try
+        {
+            var raw = (await _http.GetStringAsync(DiscoveryUrl)).Trim();
+            if (raw.StartsWith("http"))
+            {
+                _discoveredUrl = raw.TrimEnd('/');
+                GD.Print($"AuthService: discovered public server {_discoveredUrl}");
+            }
+        }
+        catch (Exception e)
+        {
+            GD.PushWarning($"AuthService: server discovery failed: {e.Message}");
+        }
+    }
 
     /// <summary>Persist a server address entered on the Boot screen (device testing).</summary>
     public static void SetServerUrl(string url)
@@ -44,7 +72,12 @@ public partial class AuthService : Node
         if (!FileAccess.FileExists(ServerUrlPath)) return;
         using var f = FileAccess.Open(ServerUrlPath, FileAccess.ModeFlags.Read);
         var saved = f?.GetAsText().Trim();
-        if (!string.IsNullOrEmpty(saved)) _serverUrlOverride = saved;
+        // A saved localhost address can never be right on a device and would
+        // block auto-discovery forever — ignore it.
+        if (!string.IsNullOrEmpty(saved) && !saved.Contains("127.0.0.1") && !saved.Contains("localhost"))
+        {
+            _serverUrlOverride = saved;
+        }
     }
 
     private readonly System.Net.Http.HttpClient _http = new();
@@ -57,8 +90,23 @@ public partial class AuthService : Node
 
     public async Task<bool> EnsureAuthenticated()
     {
-        if (LoadStoredToken()) return true;
+        // A stored token is only good if THIS server recognizes it — the test
+        // server is ephemeral (fresh DB per session), so always validate.
+        if (LoadStoredToken() && await TokenIsValid()) return true;
         return await CreateGuestAccount();
+    }
+
+    private async Task<bool> TokenIsValid()
+    {
+        try
+        {
+            var res = await Send(AuthorizedRequest(HttpMethod.Get, "/profile"));
+            return res.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private bool LoadStoredToken()
@@ -72,6 +120,8 @@ public partial class AuthService : Node
             Token = doc.RootElement.GetProperty("token").GetString();
             ProfileId = doc.RootElement.GetProperty("profileId").GetString();
             Username = doc.RootElement.GetProperty("username").GetString();
+            // A token minted by a different server is useless; the guest flow
+            // will mint a fresh one if this fails downstream.
             return !string.IsNullOrEmpty(Token);
         }
         catch (Exception e)
